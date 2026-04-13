@@ -3,7 +3,7 @@ import asyncio
 import logging
 from fastapi import FastAPI
 
-from app.api import ingest
+from app.api import ingest, alerts
 from app.core import redis
 from app.core.config import settings
 from app.core.db import engine
@@ -43,6 +43,7 @@ app = FastAPI(
 )
 
 app.include_router(ingest.router, prefix=settings.API_V1_STR)
+app.include_router(alerts.router, prefix=settings.API_V1_STR)
 
 @app.get("/health")
 async def health_check():
