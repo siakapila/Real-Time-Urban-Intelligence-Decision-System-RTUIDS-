@@ -5,7 +5,7 @@ from app.core.redis import get_redis
 from app.core.config import settings
 from app.core.db import AsyncSessionLocal
 from app.models.sensor_event import SensorEventModel, AnomalyModel
-from app.engines.rules import rule_engine
+from app.engines.decision import decision_engine
 from datetime import datetime
 
 logger = logging.getLogger(__name__)
@@ -71,14 +71,14 @@ async def process_stream():
                             )
                             session.add(db_event)
                             
-                            # Run fallback rule engine (Phase 2 logic)
-                            is_anomaly, classification, severity, desc = rule_engine.evaluate(payload)
+                            # Run Decision Engine (Phase 3 logic - ML + Fallback)
+                            is_anomaly, classification, severity, desc, detected_by = decision_engine.evaluate(payload)
                             
                             if is_anomaly:
                                 db_anomaly = AnomalyModel(
                                     event_id=event_id,
-                                    timestamp=timestamp, # Anomaly happens at exactly the same time
-                                    detected_by="RULE_ENGINE",
+                                    timestamp=timestamp, 
+                                    detected_by=detected_by,
                                     classification=classification,
                                     severity=severity,
                                     description=desc
